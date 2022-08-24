@@ -141,10 +141,8 @@ for epoch_id in range(1, num_epochs + 1):
         iters += 1
 
         fake_images, mm = netG(imgs)
-        print(fake_images.shape, mm.shape)
         G_loss = loss_function(masks, fake_images, mm, gts)
         G_loss = G_loss.sum()
-        print(G_loss)
         # epoch1, iters100, loss:0.38920, lr:0.002
         # epoch1, iters200, loss:0.36512, lr:0.002
         # epoch1, iters300, loss:0.36484, lr:0.002

@@ -25,6 +25,7 @@ class LossWithGAN_STE(nn.Layer):
     def forward(self, mask, output, mm, gt):
         holeLoss = self.l1(mask * output, mask * gt)
         validAreaLoss = self.l1((1 - mask) * output, (1 - mask) * gt)
+        print(mm.shape, mask.shape)
         mask_loss = bce_loss(mm, mask) + self.l1(mm, mask)
 
         image_loss = self.l1(output, gt)

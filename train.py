@@ -73,8 +73,8 @@ CONFIG = {
     'batchSize': 7,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
     'validdataRoot': 'dataset',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
-    # 'pretrained': "/media/backup/competition/model_best.pdparams",
-    'pretrained':"/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
+    'pretrained': "/media/backup/competition/model_best.pdparams",
+    # 'pretrained':"/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
     'num_epochs': 100,
     'seed': 8888  # 就是爱你！~
 }
@@ -101,8 +101,8 @@ ValidData = ValidDataSet(file_path=validdataRoot)
 ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=True, num_workers=0, drop_last=True)
 
 
-netG = STRnet2_change()
-# netG = STRAIDR()
+# netG = STRnet2_change()
+netG = STRAIDR()
 
 
 if CONFIG['pretrained'] is not None:
@@ -141,8 +141,10 @@ for epoch_id in range(1, num_epochs + 1):
         iters += 1
 
         fake_images, mm = netG(imgs)
+        print(fake_images.shape, mm.shape)
         G_loss = loss_function(masks, fake_images, mm, gts)
         G_loss = G_loss.sum()
+        print(G_loss)
         # epoch1, iters100, loss:0.38920, lr:0.002
         # epoch1, iters200, loss:0.36512, lr:0.002
         # epoch1, iters300, loss:0.36484, lr:0.002

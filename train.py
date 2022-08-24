@@ -102,7 +102,7 @@ ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=True, num_workers=
 
 
 # netG = STRnet2_change()
-netG = STRAIDR()
+netG = STRAIDR(num_c=96)
 
 
 if CONFIG['pretrained'] is not None:
@@ -139,7 +139,6 @@ for epoch_id in range(1, num_epochs + 1):
 
     for k, (imgs, gts, masks) in enumerate(TrainDataLoader):
         iters += 1
-
         fake_images, mm = netG(imgs)
         G_loss = loss_function(masks, fake_images, mm, gts)
         G_loss = G_loss.sum()

@@ -26,10 +26,10 @@ class LossWithGAN_STE(nn.Layer):
         holeLoss = self.l1(mask * output, mask * gt)
         validAreaLoss = self.l1((1 - mask) * output, (1 - mask) * gt)
         mask_loss = bce_loss(mm, mask) + self.l1(mm, mask)
-
         image_loss = self.l1(output, gt)
         GLoss = 0.5 * mask_loss + 0.5 * holeLoss + 0.5 * validAreaLoss + 1.5 * image_loss
         return GLoss.sum()
+
 class LossWithGAN_Finetune(nn.Layer):
     def __init__(self):
         super(LossWithGAN_Finetune, self).__init__()

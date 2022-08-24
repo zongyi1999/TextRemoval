@@ -87,9 +87,9 @@ class TrainDataSet(paddle.io.Dataset):
         del img
         del gt
         del mask
-
         inputImage = self.ImgTrans(inputImage)
         maskIn = self.ImgTrans(maskIn)
+        maskIn = maskIn[2:,:,:]
         groundTruth = self.ImgTrans(groundTruth)
 
         return inputImage, groundTruth, maskIn

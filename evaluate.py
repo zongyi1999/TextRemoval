@@ -72,10 +72,11 @@ CONFIG = {
     'batchSize': 7,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
     'validdataRoot': 'dataset',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
-    'pretrained': "/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
+    'pretrained': "/media/backup/competition/train_models_swin_erasenet_finetune/STE_7_39.9287.pdparams",#"/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
     'num_epochs': 100,
     'seed': 8888  # 就是爱你！~
 }
+# "/media/backup/competition/train_models_swin_erasenet_finetune/STE_1_39.4660.pdparams",#
 # 设置随机种子
 random.seed(CONFIG['seed'])
 np.random.seed(CONFIG['seed'])
@@ -94,7 +95,7 @@ validdataRoot = CONFIG['validdataRoot']
 # 创建数据集容器
 
 ValidData = ValidDataSetDebug(file_path=validdataRoot)
-ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=True, num_workers=0, drop_last=True)
+ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=False, num_workers=0, drop_last=True)
 
 netG = STRnet2_change()
 
@@ -175,10 +176,11 @@ for epoch_id in range(1, num_epochs + 1):
                 mm = mm.cpu()
                 clip = clip.cpu()
                 mm_in[:, :, i:i + step, j:j + step] = mm
-                g_image_clip_with_mask =g_images_clip #* mm + clip * (1 - mm) 
+                g_image_clip_with_mask =g_images_clip# * mm + clip * (1 - mm) 
                 res[:, :, i:i + step, j:j + step] = g_image_clip_with_mask
         res = res[:, :, :rh, :rw]
         # 改变通道
+        print(img_path)
         output = utils.pd_tensor2img(res)
         target = utils.pd_tensor2img(gt)
         mm_in = utils.pd_tensor2img(mm_in)
@@ -187,19 +189,7 @@ for epoch_id in range(1, num_epochs + 1):
         end = time.time()
         print(end- start)
 
-        if index in [2, 3, 5, 7, 11]:
-            fig = plt.figure(figsize=(20, 10),dpi=100)
-            # 图一
-            ax1 = fig.add_subplot(2, 2, 1)  # 1行 2列 索引为1
-            ax1.imshow(output)
-            # 图二
-            ax2 = fig.add_subplot(2, 2, 2)
-            ax2.imshow(mm_in)
-            # 图三
-            ax3 = fig.add_subplot(2, 2, 3)
-            ax3.imshow(target)
 
-            plt.show()
 
         del res
         del gt
@@ -209,3 +199,20 @@ for epoch_id in range(1, num_epochs + 1):
     ave_psnr = val_psnr / (index + 1)
     print('epoch:{}, psnr:{}'.format(epoch_id, ave_psnr))
     break
+
+# ['dehw_train_00736.jpg']
+# psnr:  31.806566776923248
+# 6.6817872524261475
+# ['dehw_train_01079.jpg']
+# psnr:  31.072858983531468
+# 7.079329252243042
+# ['00a7326c05ed4f2f965b95dac95dd01d.jpg']
+# psnr:  40.051386958186896
+# 1.1438524723052979
+# ['08407c372b76b02a7115b915e6e19334.jpg']
+# psnr:  34.2499801585562
+# 0.6940865516662598
+# ['dehw_train_00678.jpg']
+# psnr:  33.08743828470454
+# 39.320598125457764
+# ['09c74e5b497296edcdfb8cd615d960d1.jpg']

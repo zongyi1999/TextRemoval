@@ -70,11 +70,11 @@ def psnr(img1, img2):
 
 # 训练配置字典
 CONFIG = {
-    'modelsSavePath': 'train_models_swin_erasenet',
+    'modelsSavePath': 'train_models_swin_erasenet_finetue',
     'batchSize': 6,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
-    'validdataRoot': 'dataset',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
-    'pretrained': "/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
+    'validdataRoot': 'data',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
+    'pretrained': "/media/backup/competition/train_models_swin_erasenet_finetune/STE_7_39.9287.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
     'num_epochs': 100,
     'seed': 8888  # 就是爱你！~
 }
@@ -179,7 +179,6 @@ for epoch_id in range(1, num_epochs + 1):
 
         # 清除梯度
         G_optimizer.clear_grad()
-
         # 打印训练信息
         if iters % 100 == 0:
             print('epoch{}, iters{}, loss:{:.5f}, lr:{}'.format(
@@ -219,9 +218,8 @@ for epoch_id in range(1, num_epochs + 1):
                 mm = mm.cpu()
                 clip = clip.cpu()
                 mm_in[:, :, i:i + step, j:j + step] = mm
-                g_image_clip_with_mask = clip * (1 - mm) + g_images_clip * mm
+                g_image_clip_with_mask = g_images_clip # * mm +clip * (1 - mm)
                 res[:, :, i:i + step, j:j + step] = g_image_clip_with_mask
-
 
         res = res[:, :, :rh, :rw]
         # 改变通道

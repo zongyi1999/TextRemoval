@@ -19,7 +19,7 @@ from PIL import Image
 
 # 加载我们训练到的最好的模型
 netG = STRnet2_change()
-weights = paddle.load('/media/backup/competition/average_model.pdparams')
+weights = paddle.load('/media/backup/competition/train_models_swin_erasenet_finetune/STE_1_39.4660.pdparams')
 netG.load_dict(weights)
 netG.eval()
 
@@ -64,7 +64,7 @@ def process(src_image_dir, save_dir):
         clips_tensor = paddle.concat(clip_list)
         # print(clips_tensor.shape)
         clip_count = clips_tensor.shape[0]
-        clip_num= 6
+        clip_num= 2
         g_images_list = []
         for i in range(0, clips_tensor.shape[0], clip_num):
             if i+clip_num>clip_count:

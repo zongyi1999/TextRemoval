@@ -69,11 +69,11 @@ def psnr(img1, img2):
 
 # 训练配置字典
 CONFIG = {
-    'modelsSavePath': 'train_models_swin_erasenet_finetune',
+    'modelsSavePath': 'train_models',
     'batchSize': 7,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
-    'validdataRoot': 'dataset',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
-    'pretrained': "/media/backup/competition/model_best.pdparams",
+    'validdataRoot': 'data',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
+    'pretrained': "/media/backup/competition/train_models_swin_erasenet_finetune/STE_7_39.9287.pdparams",
     # 'pretrained':"/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
     'num_epochs': 100,
     'seed': 8888  # 就是爱你！~
@@ -99,20 +99,16 @@ validdataRoot = CONFIG['validdataRoot']
 
 ValidData = ValidDataSet(file_path=validdataRoot)
 ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=True, num_workers=0, drop_last=True)
-
-
-# netG = STRnet2_change()
-netG = STRAIDR(num_c=96)
-
+netG = STRnet2_change()
+# netG = STRAIDR(num_c=96)
 
 if CONFIG['pretrained'] is not None:
     print('loaded ')
     weights = paddle.load(CONFIG['pretrained'])
     netG.load_dict(weights)
 
-
 # 开始直接上大火
-lr = 2e-4
+lr = 2e-3
 G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
 scaler = paddle.amp.GradScaler(init_loss_scaling=1024)
 
@@ -132,8 +128,7 @@ for epoch_id in range(1, num_epochs + 1):
                                 num_workers=0, drop_last=True)
     netG.train()
 
-    if epoch_id % 15 == 0: #8
-        # 每8个epoch时重置优化器，学习率变为1/10，抖动式学习法
+    if epoch_id % 10 == 0: #8
         lr /= 10
         G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
 
@@ -168,7 +163,6 @@ for epoch_id in range(1, num_epochs + 1):
         G_loss.backward()
         # 最小化loss,更新参数
         G_optimizer.step()
-
 
         # 清除梯度
         G_optimizer.clear_grad()
@@ -214,8 +208,6 @@ for epoch_id in range(1, num_epochs + 1):
                 mm_in[:, :, i:i + step, j:j + step] = mm
                 g_image_clip_with_mask = clip * (1 - mm) + g_images_clip * mm
                 res[:, :, i:i + step, j:j + step] = g_image_clip_with_mask
-
-
         res = res[:, :, :rh, :rw]
         # 改变通道
         output = utils.pd_tensor2img(res)
@@ -224,21 +216,6 @@ for epoch_id in range(1, num_epochs + 1):
 
         psnr_value = psnr(output, target)
         print('psnr: ', psnr_value)
-
-        if index in [2, 3, 5, 7, 11]:
-            fig = plt.figure(figsize=(20, 10),dpi=100)
-            # 图一
-            ax1 = fig.add_subplot(2, 2, 1)  # 1行 2列 索引为1
-            ax1.imshow(output)
-            # 图二
-            ax2 = fig.add_subplot(2, 2, 2)
-            ax2.imshow(mm_in)
-            # 图三
-            ax3 = fig.add_subplot(2, 2, 3)
-            ax3.imshow(target)
-
-            plt.show()
-
         del res
         del gt
         del target

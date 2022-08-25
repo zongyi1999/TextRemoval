@@ -74,7 +74,7 @@ CONFIG = {
     'batchSize': 6,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
     'validdataRoot': 'dataset',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
-    'pretrained': "/media/backup/competition/model_best.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
+    'pretrained': "/media/backup/competition/train_models_swin_erasenet_finetune/STE_1_39.4660.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
     'num_epochs': 100,
     'seed': 8888  # 就是爱你！~
 }
@@ -102,29 +102,31 @@ ValidData = ValidDataSet(file_path=validdataRoot)
 ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=True, num_workers=0, drop_last=True)
 
 
-# netG = STRnet2_change()
+netG = STRnet2_change()
 
-netG = STRAIDR(num_c=96)
+# netG = STRAIDR(num_c=96)
 if CONFIG['pretrained'] is not None:
     print('loaded ')
     weights = paddle.load(CONFIG['pretrained'])
     netG.load_dict(weights)
 
-# trained_parameters = []
-# for name, parameter in netG.named_parameters():
-#     if "AIDR" in name:
-#         # parameter.requires_grad = False
-#         trained_parameters.append(parameter)
+trained_parameters = []
+for name, parameter in netG.named_parameters():
+    if "AIDR" in name:
+        # parameter.requires_grad = False
+        trained_parameters.append(parameter)
 
 # 开始直接上大火
-lr = 2e-3
-G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
-# G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=trained_parameters)
+lr = 2e-4
+# G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
+G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=trained_parameters)
 
 # scaler = paddle.amp.GradScaler(init_loss_scaling=1024)
 
 
-loss_function = LossWithGAN_STE()
+# loss_function = LossWithGAN_STE()
+
+loss_function = LossWithGAN_Finetune()
 
 
 print('OK!')
@@ -140,8 +142,8 @@ for epoch_id in range(1, num_epochs + 1):
     if epoch_id % 15 == 0: #8
         # 每8个epoch时重置优化器，学习率变为1/10，抖动式学习法
         lr /= 10
-        G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
-        # G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=trained_parameters)
+        # G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
+        G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=trained_parameters)
 
 
     for k, (imgs, gts, masks) in enumerate(TrainDataLoader):
@@ -224,20 +226,6 @@ for epoch_id in range(1, num_epochs + 1):
 
         psnr_value = psnr(output, target)
         print('psnr: ', psnr_value)
-
-        if index in [2, 3, 5, 7, 11]:
-            fig = plt.figure(figsize=(20, 10),dpi=100)
-            # 图一
-            ax1 = fig.add_subplot(2, 2, 1)  # 1行 2列 索引为1
-            ax1.imshow(output)
-            # 图二
-            ax2 = fig.add_subplot(2, 2, 2)
-            ax2.imshow(mm_in)
-            # 图三
-            ax3 = fig.add_subplot(2, 2, 3)
-            ax3.imshow(target)
-
-            plt.show()
 
         del res
         del gt

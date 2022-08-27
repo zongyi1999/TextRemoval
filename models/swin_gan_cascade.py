@@ -348,10 +348,12 @@ class STRnet2_change(nn.Layer):
         x = self.coarse_deconva(paddle.concat([x, x_c2, self.c2(con_x2)], axis=1))
         x = self.coarse_convm(x)
         x = self.coarse_deconvb(paddle.concat([x, x_c1, self.c1(con_x1)], axis=1))
-        x = self.coarse_convn(x)
-        x = self.AIDR(x)
-        return x, mm
-
+        x_1 = self.coarse_convn(x)
+        x = self.AIDR(x_1)
+        if self.training:
+            return x, mm
+        else:
+            return x_1, mm
 
 if __name__ == '__main__':
     net = STRnet2_change()

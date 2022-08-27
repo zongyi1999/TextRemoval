@@ -20,8 +20,11 @@ for img_dir in os.listdir(data_root):
     data_path = os.path.join(data_root, img_dir)
     image_list = [os.path.join(data_path+"/images", img_path) for img_path in os.listdir(data_path+"/images")]
     new_dir =  os.path.join(data_root, img_dir,"mask2")
+
     if not os.path.exists(new_dir):
         os.mkdir(new_dir)
+    else:
+        continue
     print(img_dir)
     for img_path in tqdm.tqdm(image_list):
         input_img = cv2.imread(img_path)

@@ -11,17 +11,21 @@ import paddle.nn.functional as F
 # 加载Erasenet改
 # from models.swin_gan_cascade import STRnet2_change
 from models.swin_gan import STRnet2_change
-
-
+from models.sa_gan import STRnet2
 import utils
 from paddle.vision.transforms import Compose, ToTensor
 from PIL import Image
 
 # 加载我们训练到的最好的模型
 netG = STRnet2_change()
-weights = paddle.load('/media/backup/competition/train_models_swin_erasenet_finetune/STE_1_39.4660.pdparams') #/media/backup/competition/average_model.pdparams')
-netG.load_dict(weights)
+netG2 = STRnet2()
+weights1 = paddle.load('/media/backup/competition/train_models_swin_erasenet_finetune/STE_1_39.4660.pdparams') #/media/backup/competition/average_model.pdparams')
+weights2 = paddle.load('/media/backup/competition/STE_str_best.pdparams')
+netG.load_dict(weights1)
 netG.eval()
+netG2.load_dict(weights2)
+netG2.eval()
+
 
 
 def ImageTransform():
@@ -75,9 +79,12 @@ def process(src_image_dir, save_dir):
             clip = clip_input.cuda()
             # print(clip.shape)
             with paddle.no_grad():
-                g_images_clip, mm = netG(clip)
-            print(g_images_clip)
-
+                if h==w or h>2000 or w>2000:
+                    g_images_clip, mm = netG2(clip)
+                    print(image_path)
+                else:
+                    g_images_clip, mm = netG(clip)
+                # g_images_clip, mm = netG(clip)
             g_images_clip = g_images_clip.cpu()
             g_images_list.append(g_images_clip)
         g_images_list = paddle.concat(g_images_list)

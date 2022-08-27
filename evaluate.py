@@ -1,6 +1,7 @@
 # 生成mask的函数如下
 import os
 import random
+import cv2
 from PIL import Image
 import numpy as np
 # 输入：水印图像路劲，原图路劲，保存的mask的路径
@@ -44,10 +45,12 @@ from dataset.data_loader import TrainDataSet, ValidDataSet, ValidDataSetDebug
 
 # 自定义的loss函数，包含mask的损失和image的损失
 from loss.Loss import LossWithGAN_STE, LossWithSwin
-
+from models.sa_gan import STRnet2
 # 使用SwinT增强的Erasenet
 from models.swin_gan_ori import STRnet2_change
+# from models.swin_gan_cascade import STRnet2_change
 # 其他工具
+
 import utils
 import random
 from PIL import Image
@@ -71,8 +74,10 @@ CONFIG = {
     'modelsSavePath': 'train_models_swin_erasenet_finetune',
     'batchSize': 7,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
-    'validdataRoot': 'dataset',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
-    'pretrained': "/media/backup/competition/train_models_swin_erasenet_finetune/STE_7_39.9287.pdparams",#"/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
+    'validdataRoot': 'data',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
+    'pretrained1': "/media/backup/competition/train_models_document/STE_90_41.7908.pdparams", #"/media/backup/competition/train_models/STE_14_39.6484.pdparams",#"/media/backup/competition/train_models/STE_2_39.4307.pdparams",#,/media/backup/competition/train_models/STE_14_39.6484.pdparams", #"/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
+    # 'pretrained': "/media/backup/competition/train_models_swin_erasenet_finetue/STE_3_41.0405.pdparams", "/media/backup/competition/train_models_swin_erasenet_finetune/STE_7_39.9287.pdparams",#"/media/backup/competition/train_models/STE_10_39.6259.pdparams",
+    'pretrained2': "/media/backup/competition/STE_str_best.pdparams",#,/media/backup/competition/train_models/STE_14_39.6484.pdparams", #"/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
     'num_epochs': 100,
     'seed': 8888  # 就是爱你！~
 }
@@ -95,15 +100,19 @@ validdataRoot = CONFIG['validdataRoot']
 # 创建数据集容器
 
 ValidData = ValidDataSetDebug(file_path=validdataRoot)
-ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=False, num_workers=0, drop_last=True)
+ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=True, num_workers=0, drop_last=True)
 
-netG = STRnet2_change()
-
-
-if CONFIG['pretrained'] is not None:
+netG1 = STRnet2_change()
+netG2 = STRnet2()
+state_dict =  netG1.state_dict()
+for name in state_dict.keys():
+    print(name)
+if CONFIG['pretrained1'] is not None:
     print('loaded ')
-    weights = paddle.load(CONFIG['pretrained'])
-    netG.load_dict(weights)
+    weights1 = paddle.load(CONFIG['pretrained1'])
+    weights2 = paddle.load(CONFIG['pretrained2'])
+    netG1.load_dict(weights1)
+    netG2.load_dict(weights2)
 
 
 
@@ -116,7 +125,9 @@ iters = 0
 
 
 for epoch_id in range(1, num_epochs + 1):
-    netG.eval()
+    netG1.eval()
+    netG2.eval()
+
     val_psnr = 0
 
     # noinspection PyAssignmentToLoopOrWithParameter
@@ -141,7 +152,7 @@ for epoch_id in range(1, num_epochs + 1):
                 if w - j < step:
                     j = w - step
                 clip = imgs[:, :, i:i + step, j:j + step]
-                clip_list.append(clip)
+                # clip_list.append(clip)
         # clips_tensor = paddle.concat(clip_list)
         # clip_count = clips_tensor.shape[0]
         # clip_num= 6
@@ -168,23 +179,34 @@ for epoch_id in range(1, num_epochs + 1):
         #         res[:, :, i:i + step, j:j + step] = g_images_list[count]
         #         count+=1
         # del g_images_list, g_images_clip, mm, clip
-
                 clip = clip.cuda()
                 with paddle.no_grad():
-                    g_images_clip, mm = netG(clip)
+                    if h>2000 or w>2000 or h==w:
+                        g_images_clip, mm = netG2(clip)
+                    else:
+                        g_images_clip, mm = netG1(clip)
+                        
                 g_images_clip = g_images_clip.cpu()
                 mm = mm.cpu()
                 clip = clip.cpu()
                 mm_in[:, :, i:i + step, j:j + step] = mm
-                g_image_clip_with_mask =g_images_clip# * mm + clip * (1 - mm) 
+                # kernel = np.ones((2, 2), np.uint8)
+                # # print(mm.shape)
+                # mm = mm.squeeze().transpose((1,2,0)).numpy()
+                # # print(mm.shape)
+                # mm = cv2.dilate(mm, kernel, iterations = 1) 
+                # mm = paddle.Tensor(mm).transpose((2,0,1)).unsqueeze(0)
+                g_image_clip_with_mask = g_images_clip #* mm + clip * (1 - mm)  
                 res[:, :, i:i + step, j:j + step] = g_image_clip_with_mask
+                del g_image_clip_with_mask, g_images_clip, mm, clip
         res = res[:, :, :rh, :rw]
         # 改变通道
-        print(img_path)
         output = utils.pd_tensor2img(res)
         target = utils.pd_tensor2img(gt)
         mm_in = utils.pd_tensor2img(mm_in)
         psnr_value = psnr(output, target)
+        
+        
         print('psnr: ', psnr_value)
         end = time.time()
         print(end- start)

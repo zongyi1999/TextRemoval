@@ -11,17 +11,9 @@ avg_state_dict = {}
 avg_counts = {}
 
 state_dicts = [
-    "train_models_swin_erasenet_finetune/STE_1_37.9850.pdparams",
-    "train_models_swin_erasenet_finetune/STE_3_38.0509.pdparams",
-    "train_models_swin_erasenet_finetune/STE_7_38.0395.pdparams",
-    "train_models_swin_erasenet_finetune/STE_9_38.2583.pdparams",
-    "train_models_swin_erasenet_finetune/STE_8_38.1507.pdparams",
-    "train_models_swin_erasenet_finetune/STE_11_38.2465.pdparams",
-    "train_models_swin_erasenet_finetune/STE_12_38.2562.pdparams",
-    "train_models_swin_erasenet_finetune/STE_13_38.2906.pdparams",
+    "/media/backup/competition/train_models_swin_erasenet_finetune/STE_1_39.4660.pdparams",
+    "/media/backup/competition/train_models_swin_erasenet_finetune/STE_5_39.7661.pdparams",
          ]
-
-
 avg_state_dict = {}
 avg_counts = {}
 for c in state_dicts:
@@ -31,7 +23,7 @@ for c in state_dicts:
         continue
     for k, v in new_state_dict.items():
         if k not in avg_state_dict:
-            avg_state_dict[k] = v.clone()
+            avg_state_dict[k] = new_state_dict[k].clone()
             avg_counts[k] = 1
         else:
             if "position_index" in k:
@@ -42,6 +34,12 @@ for c in state_dicts:
 for k, v in avg_state_dict.items():
     if "position_index" in k:
         continue
-    avg_state_dict[k]=v/avg_counts[k]
+    avg_state_dict[k]=avg_state_dict[k]/float(avg_counts[k])
+new_state_dict1 = paddle.load(state_dicts[0])
+new_state_dict2 = paddle.load(state_dicts[1])
+
+print(new_state_dict1[k])
+print(new_state_dict2[k])
+print(avg_state_dict[k])
 
 paddle.save(avg_state_dict, 'average_model.pdparams')

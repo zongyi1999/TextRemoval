@@ -36,9 +36,12 @@ class LossWithGAN_Finetune(nn.Layer):
         self.l1 = nn.L1Loss()
 
     def forward(self, mask, output, mm, gt):
-        GLoss = self.l1( output, gt)
-        return GLoss.sum()
+        holeLoss = self.l1(mask * output, mask * gt)
+        validAreaLoss = self.l1((1 - mask) * output, (1 - mask) * gt)
 
+        image_loss = self.l1(output, gt)
+        GLoss = 0.5 * holeLoss + 0.5 * validAreaLoss + 1.5 * image_loss
+        return GLoss.sum()
 class LossWithSwin(nn.Layer):
     def __init__(self):
         super(LossWithSwin, self).__init__()

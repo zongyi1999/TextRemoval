@@ -72,7 +72,7 @@ CONFIG = {
     'modelsSavePath': 'train_models_document',
     'batchSize': 7,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
-    'validdataRoot': 'data',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
+    'validdataRoot': 'dataset',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
     'pretrained': "/media/backup/competition/train_models/STE_12_39.8547.pdparams", #"/media/backup/competition/train_models/STE_15_39.6299.pdparams",
     # 'pretrained':"/media/backup/competition/train_models_swin_erasenet_finetune/STE_12_38.1306.pdparams", #"/media/backup/competition/submit/model/STE_61_37.8539.pdparams", #None, #'/media/backup/competition/train_models_swin_erasenet/STE_100_37.4260.pdparams',
     'num_epochs': 100,
@@ -108,7 +108,7 @@ if CONFIG['pretrained'] is not None:
     netG.load_dict(weights)
 
 # 开始直接上大火
-lr = 2e-3
+lr = 2e-4
 G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
 scaler = paddle.amp.GradScaler(init_loss_scaling=1024)
 
@@ -122,57 +122,6 @@ best_psnr = 0
 iters = 0
 for epoch_id in range(1, num_epochs + 1):
 
-
-
-
-
-    TrainData = TrainDataSet(training=True, file_path=traindataRoot)
-    TrainDataLoader = DataLoader(TrainData, batch_size=batchSize, shuffle=True,
-                                num_workers=8, drop_last=True)
-    netG.train()
-
-    if epoch_id % 15 == 0: #8
-        lr /= 10
-        G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
-
-    for k, (imgs, gts, masks) in enumerate(TrainDataLoader):
-        iters += 1
-        fake_images, mm = netG(imgs)
-        G_loss = loss_function(masks, fake_images, mm, gts)
-        G_loss = G_loss.sum()
-        # epoch1, iters100, loss:0.38920, lr:0.002
-        # epoch1, iters200, loss:0.36512, lr:0.002
-        # epoch1, iters300, loss:0.36484, lr:0.002
-        # epoch1, iters400, loss:0.39128, lr:0.002
-        # epoch1, iters500, loss:0.36669, lr:0.002
-        # epoch1, iters600, loss:0.39008, lr:0.002
-        # epoch1, iters700, loss:0.37363, lr:0.002
-        # 逻辑1：创建 AMP-O1 auto_cast 环境，开启自动混合精度训练，将 add 算子添加到自定义白名单中(custom_white_list)，
-        # 因此前向计算过程中该算子将采用 float16 数据类型计算
-        # with paddle.amp.auto_cast(custom_white_list={'elementwise_add'}, level='O1'):
-        #     # output = model(data) # 前向计算（9层Linear网络，每层由matmul、add算子组成）
-        #     # loss = mse(output, label) # loss计算
-        #     fake_images, mm = netG(imgs)
-        #     G_loss = loss_function(masks, fake_images, mm, gts)
-        #     G_loss = G_loss.sum()
-
-        # # 逻辑2：使用 GradScaler 完成 loss 的缩放，用缩放后的 loss 进行反向传播
-        # scaled = scaler.scale(G_loss) # loss缩放，乘以系数loss_scaling
-        # scaled.backward()           # 反向传播
-        # scaler.step(optimizer)      # 更新参数（参数梯度先除系数loss_scaling再更新参数）
-        # scaler.update()             # 基于动态loss_scaling策略更新loss_scaling系数
-        # 后向传播，更新参数的过程
-        G_loss.backward()
-        # 最小化loss,更新参数
-        G_optimizer.step()
-        # 清除梯度
-        G_optimizer.clear_grad()
-        # 打印训练信息
-        if iters % 100 == 0:
-            print('epoch{}, iters{}, loss:{:.5f}, lr:{}'.format(
-                epoch_id, iters, G_loss.item(), G_optimizer.get_lr()
-            ))
-            log.add_scalar(tag="train_loss", step=iters, value=G_loss.item())
     # 对模型进行评价并保存
     netG.eval()
     val_psnr = 0
@@ -229,3 +178,57 @@ for epoch_id in range(1, num_epochs + 1):
     if ave_psnr > best_psnr:
         best_psnr = ave_psnr
         paddle.save(netG.state_dict(), CONFIG['modelsSavePath'] + '/STE_best.pdparams')
+
+
+
+
+    TrainData = TrainDataSet(training=True, file_path=traindataRoot)
+    TrainDataLoader = DataLoader(TrainData, batch_size=batchSize, shuffle=True,
+                                num_workers=8, drop_last=True)
+    netG.train()
+
+    if epoch_id % 10 == 0: #8
+        lr /= 10
+        G_optimizer = paddle.optimizer.Adam(learning_rate=lr, parameters=netG.parameters())
+
+    for k, (imgs, gts, masks) in enumerate(TrainDataLoader):
+        iters += 1
+        fake_images, mm = netG(imgs)
+        G_loss = loss_function(masks, fake_images, mm, gts)
+        G_loss = G_loss.sum()
+        # epoch1, iters100, loss:0.38920, lr:0.002
+        # epoch1, iters200, loss:0.36512, lr:0.002
+        # epoch1, iters300, loss:0.36484, lr:0.002
+        # epoch1, iters400, loss:0.39128, lr:0.002
+        # epoch1, iters500, loss:0.36669, lr:0.002
+        # epoch1, iters600, loss:0.39008, lr:0.002
+        # epoch1, iters700, loss:0.37363, lr:0.002
+        # 逻辑1：创建 AMP-O1 auto_cast 环境，开启自动混合精度训练，将 add 算子添加到自定义白名单中(custom_white_list)，
+        # 因此前向计算过程中该算子将采用 float16 数据类型计算
+        # with paddle.amp.auto_cast(custom_white_list={'elementwise_add'}, level='O1'):
+        #     # output = model(data) # 前向计算（9层Linear网络，每层由matmul、add算子组成）
+        #     # loss = mse(output, label) # loss计算
+        #     fake_images, mm = netG(imgs)
+        #     G_loss = loss_function(masks, fake_images, mm, gts)
+        #     G_loss = G_loss.sum()
+
+        # # 逻辑2：使用 GradScaler 完成 loss 的缩放，用缩放后的 loss 进行反向传播
+        # scaled = scaler.scale(G_loss) # loss缩放，乘以系数loss_scaling
+        # scaled.backward()           # 反向传播
+        # scaler.step(optimizer)      # 更新参数（参数梯度先除系数loss_scaling再更新参数）
+        # scaler.update()             # 基于动态loss_scaling策略更新loss_scaling系数
+
+        # 后向传播，更新参数的过程
+        G_loss.backward()
+        # 最小化loss,更新参数
+        G_optimizer.step()
+
+        # 清除梯度
+        G_optimizer.clear_grad()
+
+        # 打印训练信息
+        if iters % 100 == 0:
+            print('epoch{}, iters{}, loss:{:.5f}, lr:{}'.format(
+                epoch_id, iters, G_loss.item(), G_optimizer.get_lr()
+            ))
+            log.add_scalar(tag="train_loss", step=iters, value=G_loss.item())

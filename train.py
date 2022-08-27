@@ -68,7 +68,7 @@ def psnr(img1, img2):
 
 # 训练配置字典
 CONFIG = {
-    'modelsSavePath': 'train_models_document_STRAIDR',
+    'modelsSavePath': 'train_models_document_STR',
     'batchSize': 7,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
     'validdataRoot': 'data',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
@@ -137,7 +137,6 @@ for epoch_id in range(1, num_epochs + 1):
     for k, (imgs, gts, masks) in enumerate(TrainDataLoader):
         iters += 1
         fake_images, mm = netG(imgs)
-        masks = masks[:,2:,:,:]
         G_loss = loss_function(masks, fake_images, mm, gts)
         G_loss = G_loss.sum()
         # epoch1, iters100, loss:0.38920, lr:0.002

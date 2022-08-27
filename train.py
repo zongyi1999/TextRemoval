@@ -72,7 +72,7 @@ CONFIG = {
     'batchSize': 7,  # 模型大，batch_size调小一点防崩，拉满显存但刚好不超，就是炼丹仙人~
     'traindataRoot': 'data',
     'validdataRoot': 'data',   # 因为数据集量大，且分布一致，就直接取训练集中数据作为验证了。别问，问就是懒
-    'pretrained': "/media/backup/competition/model_best_document.pdparams", 
+    'pretrained': "/media/backup/competition/train_models_swin_erasenet_finetue/STE_3_41.0405.pdparams", 
     'num_epochs': 100,
     'seed': 8888  # 就是爱你！~
 }

@@ -102,7 +102,7 @@ validdataRoot = CONFIG['validdataRoot']
 ValidData = ValidDataSetDebug(file_path=validdataRoot)
 ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=True, num_workers=0, drop_last=True)
 
-netG1 = STRnet2_change()
+# netG1 = STRnet2_change()
 netG2 = STRnet2()
 state_dict =  netG1.state_dict()
 for name in state_dict.keys():

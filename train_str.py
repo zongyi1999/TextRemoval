@@ -97,8 +97,8 @@ validdataRoot = CONFIG['validdataRoot']
 
 ValidData = ValidDataSet(file_path=validdataRoot)
 ValidDataLoader = DataLoader(ValidData, batch_size=1, shuffle=True, num_workers=0, drop_last=True)
-netG = STRnet2_change()
-# netG = STRnet2()
+# netG = STRnet2_change()
+netG = STRnet2()
 # netG = STRAIDR(num_c=96)
 
 if CONFIG['pretrained'] is not None:

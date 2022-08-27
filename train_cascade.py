@@ -47,7 +47,7 @@ from loss.Loss import LossWithGAN_STE, LossWithSwin
 
 # 使用SwinT增强的Erasenet
 from models.swin_gan_ori import STRnet2_change
-from models.stn import  STRAIDR
+from models.str import  STRAIDR
 # 其他工具
 import utils
 import random

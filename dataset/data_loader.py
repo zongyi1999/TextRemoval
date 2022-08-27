@@ -117,12 +117,12 @@ class TrainDataSet(paddle.io.Dataset):
 
         # if self.training:
         # # ### for data augmentation
-        all_input = [img, mask, gt]
-        all_input = random_horizontal_flip(all_input)   
-        # all_input = random_rotate(all_input)
-        img = all_input[0]
-        mask = all_input[1]
-        gt = all_input[2]
+        # all_input = [img, mask, gt]
+        # all_input = random_horizontal_flip(all_input)   
+        # # all_input = random_rotate(all_input)
+        # img = all_input[0]
+        # mask = all_input[1]
+        # gt = all_input[2]
         # mask = self._cal_mask(np.array(gt), np.array(img))
         param = self.RandomCropparam._get_param(img.convert('RGB'), (512, 512))
         inputImage = F.crop(img.convert('RGB'), *param)
@@ -153,7 +153,7 @@ class ValidDataSet(paddle.io.Dataset):
         data_path = self.path +'/classone/'+ data_dirs[i]+ '/images'
         data_path2 = self.path +'/dehw_train_dataset'+ '/images'
         self.image_list = [os.path.join(data_path, img_path) for img_path in os.listdir(data_path)]
-        self.image_list += [os.path.join(data_path2, img_path) for img_path in os.listdir(data_path2)]
+        # self.image_list += [os.path.join(data_path2, img_path) for img_path in os.listdir(data_path2)]
         print("number of images:", len(self.image_list))
         # self.image_list = os.listdir(self.path + '/images')
 

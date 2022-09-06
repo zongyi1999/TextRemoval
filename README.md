@@ -118,7 +118,12 @@
 
    指定预训练模型路径：pretrained
 
+   
+
    ```
+   训练分类网络
+   python trainV.py
+   训练手写文字擦除网络
    python trainNewMaskAugSchedule.py
    ```
 

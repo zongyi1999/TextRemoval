@@ -110,11 +110,17 @@
 
    重新生成mask
 
+   将data_root和data_pat改成对应的数据路径
+
    ```
    python generate_mask5.py
    ```
 
 2. 启动训练
+
+   指定数据集路径：dataRoot
+
+   指定预训练模型路径：pretrained
 
    ```
    python trainNewMaskAugSchedule.py

@@ -48,7 +48,7 @@
 
 ​	训练的batchsize为7；采用的优化器为Adam；初始学习率为： 1e-04 ；30000个step后将学习率降为原来的1/2；小角度旋转和水平翻转的概率为0.3 ；训练的显卡型号为RTX6000
 
-​	对于试卷类模型，我们直接采用上一届的方案进行推理，链接为：https://aistudio.baidu.com/aistudio/projectdetail/4502201
+​	对于试卷类模型，我们直接采用上一届的方案进行推理，链接为：https://aistudio.baidu.com/aistudio/projectdetail/3439691?channelType=0&channel=0
 
 ​	对于文档类的模型，我们将数据集根据0.93:0.07的比例划分成训练集和验证集，训练时候验证集的精度和曲线如下所示：
 

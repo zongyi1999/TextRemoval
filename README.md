@@ -1,5 +1,3 @@
-
-
 # 百度网盘AI大赛通用场景手写文字擦除第一名方案
 
 比赛链接：[手写文字擦除](https://aistudio.baidu.com/aistudio/competition/detail/347/0/introduction)
@@ -31,8 +29,6 @@
 ![image-20220906132128209](.assets/image-20220906132128209.png)
 
 此外，我们发现残留的位置大都为彩色笔迹，因此我们不采用计算三个通道的平均值来计算mask，而通过分别计算image和gt在三个通道的插值来生成mask.
-
-
 
 ## 三、模型设计
 
@@ -138,6 +134,12 @@
 ## 七、预训练模型
 
 我们将模型上传至：
+
+https://aistudio.baidu.com/bj-cpu-01/user/446178/4503672/doc/tree/work/Final/model/STE_str_best.pdparams
+
+
+
+
 
 
 

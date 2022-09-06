@@ -133,11 +133,9 @@
 
 ## 七、预训练模型
 
-我们将模型上传至：
+我们将模型上传至项目：https://aistudio.baidu.com/aistudio/projectdetail/4503672
 
-STE_str_best.pdparams: https://aistudio.baidu.com/bj-cpu-01/user/446178/4503672/doc/tree/work/Final/model/STE_str_best.pdparams
-
-
+在Final/model 路径下包含我们分类模型和两类擦除模型，直接运行predict即可
 
 
 

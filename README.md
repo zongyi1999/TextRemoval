@@ -44,7 +44,7 @@
 
 ​	训练的batchsize为7；采用的优化器为Adam；初始学习率为： 1e-04 ；30000个step后将学习率降为原来的1/2；小角度旋转和水平翻转的概率为0.3 ；训练的显卡型号为RTX6000
 
-​	对于试卷类模型，我们直接采用上一届的方案进行推理，链接为：https://aistudio.baidu.com/aistudio/projectdetail/3439691?channelType=0&channel=0
+​	对于试卷类模型，我们采用上一届的方案进行训练推理，链接为：https://aistudio.baidu.com/aistudio/projectdetail/3439691?channelType=0&channel=0
 
 ​	对于文档类的模型，我们将数据集根据0.93:0.07的比例划分成训练集和验证集，训练时候验证集的精度和曲线如下所示：
 
@@ -56,7 +56,7 @@
 
 ## 五、测试细节
 
-1. 测试时候的图片输入size为$512\times 512$
+1. 测试时候的图片输入size为512x512
 2. 首先将图片输入至分类模型，得到对应的类别后使用对应类别图片的模型进行推理。
 3. 由于原有maskGT可能不太准确，生成之后的mask也不能完全覆盖对应的手写区域，我们发现mask生成后还会有笔迹 残留，因此直接采用refinement分支输出的图片作为结果，将mask给去掉。
 4. 测试采用翻转镜像增强，将原图预测和镜像之后的预测结果进行平均作为最后输出。
@@ -135,7 +135,7 @@
 
 我们将模型上传至：
 
-https://aistudio.baidu.com/bj-cpu-01/user/446178/4503672/doc/tree/work/Final/model/STE_str_best.pdparams
+STE_str_best.pdparams: https://aistudio.baidu.com/bj-cpu-01/user/446178/4503672/doc/tree/work/Final/model/STE_str_best.pdparams
 
 
 
